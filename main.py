@@ -1,6 +1,13 @@
 import json
 from config import *
-from typing import Dict, List
+from typing import List
+from dataclasses import dataclass
+
+@dataclass
+class QGate:
+    name: str
+    qubits: List[int]
+    params: List[float]
 
 class Extractor:
     def __init__(self, graph: dict):
@@ -13,11 +20,23 @@ class Extractor:
         self.node_data = {**{n: v["data"] for n, v in graph["node_vertices"].items()}, **{n: None for n, _ in graph["wire_vertices"].items()}}
         self.edges = {k: [] for k in self.nodes}
         [self.edges[e["src"]].append(e["tgt"]) or self.edges[e["tgt"]].append(e["src"]) for _, e in graph["undir_edges"].items()]
-        
 
-graph = json.load(open(BENCHMARK_PATH))
-extractor = Extractor(graph)
-print(extractor.pis)
-print(extractor.pos)
-print(extractor.nodes)
-print(extractor.edges)
+
+class BaselineExtractor:
+    def __init__(self, graph_json: str):
+        from pyzx import Graph
+        self.graph = Graph.from_json(graph_json)
+    
+    def run(self):
+        from pyzx import extract_circuit
+        circuit = extract_circuit(self.graph).to_basic_gates()
+        return sum(1 for g in circuit.gates if g.name in ('CNOT','CZ')) # 2-qubit gates
+
+def extract_qc():
+    if MODE == "baseline":
+        extractor = BaselineExtractor(open(BENCHMARK_PATH).read())
+    else:
+        graph = json.load(open(BENCHMARK_PATH))
+        extractor = Extractor(graph)
+    n_cnots = extractor.run()
+    print(n_cnots)
