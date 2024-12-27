@@ -1,7 +1,8 @@
-import os
-BENCHMARK_DIR = './benchmarks/graphs'
-BENCHMARK = 'barenco_tof_3'
-BENCHMARK_PATH = os.path.join(BENCHMARK_DIR, BENCHMARK+'.json')
+import os, glob
+QASM_DIR = './benchmarks/circuits'
+GRAPH_DIR = './benchmarks/graphs'
+QASMS = glob.glob(os.path.join(QASM_DIR, "*.qasm"))
+GRAPHS = glob.glob(os.path.join(GRAPH_DIR, "*.graph"))
 
-# MODE = "baseline"
-MODE = "zx"
+UP_TO_PERM = True
+TIMEOUT = 60
